@@ -65,14 +65,15 @@ def Simula_Repeticoes(n, taxa_lambda, IT, mi):
     no = 0
     i = 0
     while True:
-        for _ in range(no, N):
+        while no < N:
+            no+=1
             x, y, r, w, tm  = Simula_Interv_Tempo(n, taxa_lambda, IT, mi)
             # print('x {}\ny {}\nr {}\nw {}\ntm {}'.format(x,y,r,w,tm))
             # exit(0)
             X.append(x)
             Y.append(y)
             R.append(r)
-            W.append(w+W[-1])
+            # W.append(w+W[-1])
             Wp.append(w)
             TM.append(tm)
             c = calcula_intervalo_confianca(Wp)
@@ -80,17 +81,23 @@ def Simula_Repeticoes(n, taxa_lambda, IT, mi):
         # print(i)
         # print(W)
         if 2*intervalos[-1] < 0.005:
-            print(N)
+            # print(N)
             break
 
         N+=100
         i+=1
 
-    return X, Y, R, W, TM, N
+    return X, Y, R, Wp, TM, N, intervalos
 
 
-X, Y, R, Wp, TM, N = Simula_Repeticoes(n, taxa_lambda, IT, mi)
+X, Y, R, Wp, TM, N, intervalos = Simula_Repeticoes(n, taxa_lambda, IT, mi)
 
+print(len(X))
+print(len(Y))
+print(len(Wp))
+print(len(TM))
+print(len(intervalos))
+print(N)
 # print([mean(X), mean(Y), mean(W), mean(TM), N])
 
 # Caso eu queira gerar os graficos em png
@@ -118,22 +125,23 @@ plt.xlabel('k')
 plt.show()
 
 
-iters = range(100, N+1, 100)
+iters = range(N)
 qtiter = len(iters)
-mw = [0 for _ in range(qtiter)]
-upw = [0 for _ in range(qtiter)]
-dnw = [0 for _ in range(qtiter)]
-
-
+mw = [0 for _ in range(N)]
 
 for i in range(qtiter):
-    Natu = iters[i]
-    mw[i] = Wp[Natu]/Natu
-    # upw[i] = sum(IT[0:Natu + 1]) / Natu
-    # dnw[i] = sum(IT[0:Natu + 1]) / Natu
+    mw[i] = sum(Wp[0:i+1])/(i+1)
 
 
-plt.plot(iters, mw)
+mu = []
+md = []
+for i, j in zip(mw, intervalos):
+    mu.append(i+j)
+    md.append(i-j)
+
+plt.plot(iters, mw, color='black')
+plt.plot(iters, mu, '--', color='gray')
+plt.plot(iters, md, '--', color='gray')
 plt.ylabel('E(W)')
 plt.xlabel('k')
 plt.show()

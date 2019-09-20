@@ -15,41 +15,47 @@ mi = 0.5
 
 
 def Simula_Interv_Tempo(n, taxa_lambda, IT, mi):
+    # Inicializa a lista de atendentes com tamanho n e as demais variáveis utilizadas
     tempdisp = [0 for _ in range(n)]
     x, y, k, tm, Tc, ct_cheg, r, w = 0, 0, 0, 0, 0, {}, 0, 0
+
+    # Gera tempo de chegada do próximo cliente
     z  = np.random.exponential(1/taxa_lambda)
-    # print(z)
+
+    # Enquanto o próximo cliente chegar dentro do intervalo máximo considerado
     while Tc+z <=IT:
         Tc += z
-        # print('\nChegou cliente em {}'.format(Tc))
         k+=1
         ct_cheg[k] = Tc
+
+        # Cria uma lista com os ids dos guiches que podem atender no tempo Tc
         idxdisp = [i for i in range(len(tempdisp)) if tempdisp[i] <= Tc]
-        # print('\tCaixas disponiveis: {}'.format(idxdisp))
-        # print("\t\tComprimento da fila: {}".format(r))
+
+        # Enquanto ouverem guiches livres e clientes esperando para serem atendidos
         while idxdisp and x<k:
             x +=1
+            # Retira da lista o id do primeiro guiche disponível
             j = idxdisp.pop(0)
+            # Gera o tempo que o cliente manterá o guiche ocupado quando começa seu atendimento
             a = np.random.exponential(1/mi)
-            # print('\t\tCliente {} Atendido no Caixa {} com tempo {}'.format(x, j, a))
-            # print(ct_cheg)
-            # print('j {}, x {}'.format(j, x))
-            # print(tempdisp[j])
+            # Atualiza o tempo em que o guiche j ficará disponível
             tempdisp[j] = max(tempdisp[j], ct_cheg[x]) + a
-            # print(ct_cheg[x])
-            # print('\t\t\tCaixa estara disponivel em {}'.format(str(tempdisp[j])))
+            # atualiza o tempo máximo de espera se necessário
             tm = max(tm, (tempdisp[j] - ct_cheg[x]))
-            # print('\tCaixas disponiveis: {}'.format(idxdisp))
+
         r = max(0, k-x-1)
         pr = r/(r+n)
+
+        # Gera a opçao de o cliente nao esperar na fila (se a fila estiver vazia este valor será
+        # invariavelmente zero)
         s = np.random.binomial(1, pr)
         if s == 1:
-            # print('Cliente foi embora')
             k -= 1
             y += 1
 
+        # Gera o intervalo para a chegada do próximo cliente,
+        # atualiza o comprimento da fila e a proporçao de clientes que desistiram de esperar
         z = np.random.exponential(1/taxa_lambda)
-        # print(z)
         r = k - x
         w = y / (x + y + r)
 
@@ -60,65 +66,47 @@ def calcula_intervalo_confianca(data):
     return 1.96*dp/sqrt(len(data))
 
 def Simula_Repeticoes(n, taxa_lambda, IT, mi):
-    X, Y, R, W, TM, intervalos, Wp = [], [], [], [0], [], [], []
+    # Inicialização dos vetores
+    X, Y, R, W, TM, intervalos = [], [], [], [], [], []
+
+    # valor de N inicial
     N = 100
+    # variável de iteração
     no = 0
-    i = 0
+
     while True:
+        # Calcula 100 vezes a cada rodada
         while no < N:
             no+=1
             x, y, r, w, tm  = Simula_Interv_Tempo(n, taxa_lambda, IT, mi)
-            # print('x {}\ny {}\nr {}\nw {}\ntm {}'.format(x,y,r,w,tm))
-            # exit(0)
+
+            # Adiciona a nova iteração
             X.append(x)
             Y.append(y)
             R.append(r)
-            # W.append(w+W[-1])
-            Wp.append(w)
+            W.append(w)
             TM.append(tm)
-            c = calcula_intervalo_confianca(Wp)
+            c = calcula_intervalo_confianca(W)
             intervalos.append(c)
-        # print(i)
-        # print(W)
+
+        # Verifica se a amplitude do último dado calculado é menor do que a restrição de 0.005
         if 2*intervalos[-1] < 0.005:
-            # print(N)
             break
 
+        # Incrementa em 100 para a próxima iteração
         N+=100
-        i+=1
 
-    return X, Y, R, Wp, TM, N, intervalos
-
-
-X, Y, R, Wp, TM, N, intervalos = Simula_Repeticoes(n, taxa_lambda, IT, mi)
-
-print(len(X))
-print(len(Y))
-print(len(Wp))
-print(len(TM))
-print(len(intervalos))
-print(N)
-# print([mean(X), mean(Y), mean(W), mean(TM), N])
-
-# Caso eu queira gerar os graficos em png
-#grwidth = 700
-#grheight = 400
-#nmarq = paste('HistX_', n, '_', lambda, '_', th, '.png', sep='')
-#png(filename=nmarq, width = grwidth, height = grheight, pointsize = 14)
-#par(mai=c(1.2,1.3,1,0.2))
-#
-
-# par(mai=c(0.96, 0.82, 0.2, 0.2))
-# n, bins, patches = plt.hist(X, 100, facecolor='green', alpha=0.5)
-# plt.show()
+    return X, Y, R, W, TM, N, intervalos
 
 
+X, Y, R, W, TM, N, intervalos = Simula_Repeticoes(n, taxa_lambda, IT, mi)
 
-n, bins, patches = plt.hist(TM, 100, facecolor='red', label='TM', alpha=0.5)
+plt.hist(TM, 100, facecolor='red', label='TM', alpha=0.5)
 plt.ylabel('TM')
 plt.xlabel('k')
 plt.show()
-n, bins, patches = plt.hist(Wp, 100, facecolor='blue', alpha=0.5)
+
+plt.hist(W, 100, facecolor='blue', alpha=0.5)
 plt.ylabel('W')
 plt.xlabel('k')
 
@@ -130,10 +118,10 @@ qtiter = len(iters)
 mw = [0 for _ in range(N)]
 
 for i in range(qtiter):
-    mw[i] = sum(Wp[0:i+1])/(i+1)
+    mw[i] = sum(W[0:i+1])/(i+1)
 
 
-mu = []
+mu = [] 
 md = []
 for i, j in zip(mw, intervalos):
     mu.append(i+j)

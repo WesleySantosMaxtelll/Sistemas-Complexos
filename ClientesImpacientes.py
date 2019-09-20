@@ -67,7 +67,7 @@ def calcula_intervalo_confianca(data):
 
 def Simula_Repeticoes(n, taxa_lambda, IT, mi):
     # Inicialização dos vetores
-    X, Y, R, W, TM, intervalos = [], [], [], [], [], []
+    X, Y, R, W, TM, ic_w, ic_tm = [], [], [], [], [], [], []
 
     # valor de N inicial
     N = 100
@@ -76,6 +76,7 @@ def Simula_Repeticoes(n, taxa_lambda, IT, mi):
 
     while True:
         # Calcula 100 vezes a cada rodada
+        print(N)
         while no < N:
             no+=1
             x, y, r, w, tm  = Simula_Interv_Tempo(n, taxa_lambda, IT, mi)
@@ -87,19 +88,23 @@ def Simula_Repeticoes(n, taxa_lambda, IT, mi):
             W.append(w)
             TM.append(tm)
             c = calcula_intervalo_confianca(W)
-            intervalos.append(c)
+            ic_w.append(c)
+            c = calcula_intervalo_confianca(TM)
+            ic_tm.append(c)
 
         # Verifica se a amplitude do último dado calculado é menor do que a restrição de 0.005
-        if 2*intervalos[-1] < 0.005:
+        if 2*ic_w[-1] < 0.005:
             break
 
         # Incrementa em 100 para a próxima iteração
         N+=100
 
-    return X, Y, R, W, TM, N, intervalos
+    return X, Y, R, W, TM, N, ic_w, ic_tm
 
 
-X, Y, R, W, TM, N, intervalos = Simula_Repeticoes(n, taxa_lambda, IT, mi)
+X, Y, R, W, TM, N, ic_w, ic_tm = Simula_Repeticoes(n, taxa_lambda, IT, mi)
+
+
 
 plt.hist(TM, 100, facecolor='red', label='TM', alpha=0.5)
 plt.ylabel('TM')
@@ -113,17 +118,18 @@ plt.xlabel('k')
 plt.show()
 
 
-iters = range(N)
+# Gráfico de linha para W
+iters = range(100, N)
 qtiter = len(iters)
-mw = [0 for _ in range(N)]
+
+mw = [] # media acumulada de w
+mu = [] # intervalo de confiança superior
+md = [] # intervalo de confiança inferior
 
 for i in range(qtiter):
-    mw[i] = sum(W[0:i+1])/(i+1)
+    mw.append(sum(W[0:i+1])/(i+1))
 
-
-mu = [] 
-md = []
-for i, j in zip(mw, intervalos):
+for i, j in zip(mw, ic_w):
     mu.append(i+j)
     md.append(i-j)
 
@@ -134,6 +140,33 @@ plt.ylabel('E(W)')
 plt.xlabel('k')
 plt.show()
 
+
+
+# Gráfico de linha para TM
+
+iters = range(100, N)
+qtiter = len(iters)
+
+mTm = [] # media acumulada de tm
+mu = [] # intervalo de confiança superior
+md = [] # intervalo de confiança inferior
+
+for i in range(qtiter):
+    mTm.append(sum(TM[0:i+1])/(i+1))
+
+for i, j in zip(mTm, ic_tm):
+    mu.append(i+j)
+    md.append(i-j)
+
+plt.plot(iters, mTm, color='black')
+plt.plot(iters, mu, '--', color='gray')
+plt.plot(iters, md, '--', color='gray')
+plt.ylabel('E(TM)')
+plt.xlabel('k')
+plt.show()
+
+
+
 print('Médias Finais')
 print('\tX: {}'.format(mean(X)))
 print('\tY: {}'.format(mean(Y)))
@@ -142,3 +175,10 @@ print('\tTm: {}'.format(mean(TM)))
 
 pr = len([x for x in TM if x >13])/len(TM)
 print('\nA probabilidade de Tm ser maior que 13 é {}%'.format(100*pr))
+
+
+# Ordena W de forma decrescente, pegando os 5% maiores elementos,
+# ws será o menor elemento dos 5% maiores.
+ws = sorted(W, reverse=True)[:int(len(W)*0.05)][-1]
+
+print('O valor de Ws para que p(W > Ws) < 5% é {}'.format(ws))

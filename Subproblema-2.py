@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 taxa_lambda = 4
 IT = 60
 mi = 0.5
-N = 10000
+N = 5000
 
 
 def Simula_Interv_Tempo(n, taxa_lambda, IT, mi):

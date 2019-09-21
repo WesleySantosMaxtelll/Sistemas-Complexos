@@ -1,12 +1,7 @@
 import numpy as np
-import random
 from statistics import mean
-import matplotlib.mlab as mlab
-import scipy
-from scipy.stats import bernoulli
 from math import sqrt
 import matplotlib.pyplot as plt
-
 
 n = 5
 taxa_lambda = 3
@@ -93,6 +88,7 @@ def Simula_Repeticoes(n, taxa_lambda, IT, mi):
             ic_tm.append(c)
 
         # Verifica se a amplitude do último dado calculado é menor do que a restrição de 0.005
+        # print(2*ic_w[-1])
         if 2*ic_w[-1] < 0.005:
             break
 
@@ -107,14 +103,16 @@ X, Y, R, W, TM, N, ic_w, ic_tm = Simula_Repeticoes(n, taxa_lambda, IT, mi)
 
 
 plt.hist(TM, 100, facecolor='red', label='TM', alpha=0.5)
+plt.title('Histograma de TM')
 plt.ylabel('TM')
 plt.xlabel('k')
 plt.show()
 
+
 plt.hist(W, 100, facecolor='blue', alpha=0.5)
+plt.title('Histograma de W')
 plt.ylabel('W')
 plt.xlabel('k')
-
 plt.show()
 
 
@@ -133,13 +131,13 @@ for i, j in zip(mw, ic_w):
     mu.append(i+j)
     md.append(i-j)
 
+plt.title('Gráfico de linha de W em funçao de K')
 plt.plot(iters, mw, color='black')
 plt.plot(iters, mu, '--', color='gray')
 plt.plot(iters, md, '--', color='gray')
 plt.ylabel('E(W)')
 plt.xlabel('k')
 plt.show()
-
 
 
 # Gráfico de linha para TM
@@ -158,6 +156,7 @@ for i, j in zip(mTm, ic_tm):
     mu.append(i+j)
     md.append(i-j)
 
+plt.title('Gráfico de linha de TM em funçao de K')
 plt.plot(iters, mTm, color='black')
 plt.plot(iters, mu, '--', color='gray')
 plt.plot(iters, md, '--', color='gray')
@@ -174,11 +173,11 @@ print('\tR: {}'.format(mean(R)))
 print('\tTm: {}'.format(mean(TM)))
 
 pr = len([x for x in TM if x >13])/len(TM)
-print('\nA probabilidade de Tm ser maior que 13 é {}%'.format(100*pr))
+print('\nA probabilidade de Tm ser maior que 13 é {}%'.format(round(100*pr, 2)))
 
 
 # Ordena W de forma decrescente, pegando os 5% maiores elementos,
 # ws será o menor elemento dos 5% maiores.
 ws = sorted(W, reverse=True)[:int(len(W)*0.05)][-1]
 
-print('O valor de Ws para que p(W > Ws) < 5% é {}'.format(ws))
+print('O valor de Ws para que p(W > Ws) < 5% é {}'.format(round(ws, 2)))

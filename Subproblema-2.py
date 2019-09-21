@@ -7,6 +7,7 @@ from scipy.stats import bernoulli
 from math import sqrt
 import matplotlib.pyplot as plt
 
+# EP Sistemas Complexos
 
 taxa_lambda = 4
 IT = 60

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 taxa_lambda = 4
 IT = 60
 mi = 0.5
-N = 5000
+N = 10000
 
 
 def Simula_Interv_Tempo(n, taxa_lambda, IT, mi):
@@ -78,13 +78,14 @@ def Simula_Repeticoes(n, taxa_lambda, IT, mi, N):
 
     return X, Y, R, W, TM
 
+def encontra_n(taxa_lambda, IT, mi, N):
+    n = 2
+    while True:
+        print('Testando {} simulaçoes com n = {}'.format(N, n))
+        X, Y, R, W, TM = Simula_Repeticoes(n, taxa_lambda, IT, mi, N)
+        print(sorted(W, reverse=True)[:int(len(W)*0.05)][-1])
+        if sorted(W, reverse=True)[:int(len(W)*0.05)][-1] < 0.20:
+            break
+        n +=1
 
-n = 2
-while True:
-    print('Testando {} simulaçoes com n = {}'.format(N, n))
-    X, Y, R, W, TM = Simula_Repeticoes(n, taxa_lambda, IT, mi, N)
-    print(sorted(W, reverse=True)[:int(len(W)*0.05)][-1])
-    if sorted(W, reverse=True)[:int(len(W)*0.05)][-1] < 0.20:
-        print('O melhor valor para n é {}'.format(n))
-        exit()
-    n +=1
+    print('O melhor valor para n é {}'.format(n))

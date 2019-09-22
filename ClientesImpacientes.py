@@ -137,6 +137,7 @@ plt.plot(iters, mu, '--', color='gray')
 plt.plot(iters, md, '--', color='gray')
 plt.ylabel('E(W)')
 plt.xlabel('k')
+# plt.ylim(md[-1]-0.1, mu[-1]+0.1)
 plt.show()
 
 
@@ -162,6 +163,7 @@ plt.plot(iters, mu, '--', color='gray')
 plt.plot(iters, md, '--', color='gray')
 plt.ylabel('E(TM)')
 plt.xlabel('k')
+# plt.ylim(10,13)
 plt.show()
 
 
